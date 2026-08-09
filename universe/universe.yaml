@@ -1,0 +1,284 @@
+# 유니버스 — PHILOSOPHY.md §5 스키마의 실행형
+#
+# 분기 1회 수동 리뷰. 변경 이력은 git diff가 리뷰 기록이다.
+# ⚠ 초안: 파도 노출도(waves)와 순도(purity)는 가안이며 사용자 검수 전이다.
+#
+# layer: ① 전력·그리드 ② DC부동산 ③ 장비·파운드리 ④ 칩 ⑤ 시스템·네트워킹·냉각
+#        ⑥ 클라우드 ⑦ 모델(비상장) ⑧ 응용SW ⑨ 피지컬
+# purity: H (AI 매출 ≥70%) / M (30~70%) / L (<30%)
+
+stocks:
+  # ── ① 전력·그리드 ─────────────────────────────
+  GEV:
+    name: GE Vernova
+    layer: 1
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+  ETN:
+    name: Eaton
+    layer: 1
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: L        # AI/DC 비중 ~15-20% (철학 §2 순도 사례)
+    valuation: PER밴드
+    maturity: 이익기업
+  VST:
+    name: Vistra
+    layer: 1
+    aux_layers: []
+    waves: {W1: M, W2: M, W3: L}
+    purity: L
+    valuation: PER밴드
+    maturity: 이익기업
+  CEG:
+    name: Constellation Energy
+    layer: 1
+    aux_layers: []
+    waves: {W1: M, W2: M, W3: L}
+    purity: L
+    valuation: PER밴드
+    maturity: 이익기업
+
+  # ── ② DC 부동산·구축 ──────────────────────────
+  EQIX:
+    name: Equinix
+    layer: 2
+    aux_layers: []
+    waves: {W1: H, W2: H, W3: L}
+    purity: M
+    valuation: FFO배수
+    maturity: 이익기업
+  DLR:
+    name: Digital Realty
+    layer: 2
+    aux_layers: []
+    waves: {W1: H, W2: H, W3: L}
+    purity: M
+    valuation: FFO배수
+    maturity: 이익기업
+
+  # ── ③ 장비·파운드리 ───────────────────────────
+  ASML:
+    name: ASML (ADR)
+    layer: 3
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+  TSM:
+    name: TSMC (ADR)
+    layer: 3
+    aux_layers: []
+    waves: {W1: H, W2: H, W3: M}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+  AMAT:
+    name: Applied Materials
+    layer: 3
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+  LRCX:
+    name: Lam Research
+    layer: 3
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+  KLA:
+    name: KLA
+    layer: 3
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+
+  # ── ④ 칩 (로직·메모리) ────────────────────────
+  NVDA:
+    name: NVIDIA
+    layer: 4
+    aux_layers: [5]   # 시스템(DGX/NVLink)·네트워킹(Mellanox)
+    waves: {W1: H, W2: H, W3: M}
+    purity: H
+    valuation: PEG혼합
+    maturity: 이익기업
+  AMD:
+    name: AMD
+    layer: 4
+    aux_layers: []
+    waves: {W1: H, W2: H, W3: L}
+    purity: M
+    valuation: PEG혼합
+    maturity: 이익기업
+  AVGO:
+    name: Broadcom
+    layer: 4
+    aux_layers: [5]   # 커스텀 ASIC + 네트워킹. 순도 상승 추세 관찰 대상 (철학 §2)
+    waves: {W1: H, W2: H, W3: L}
+    purity: M
+    valuation: PEG혼합
+    maturity: 이익기업
+  MRVL:
+    name: Marvell
+    layer: 4
+    aux_layers: [5]
+    waves: {W1: H, W2: M, W3: L}
+    purity: M
+    valuation: PEG혼합
+    maturity: 이익기업
+  MU:
+    name: Micron
+    layer: 4
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: M        # HBM 비중 상승 중
+    valuation: PEG혼합
+    maturity: 이익기업
+
+  # ── ⑤ 시스템·네트워킹·냉각 ────────────────────
+  ANET:
+    name: Arista Networks
+    layer: 5
+    aux_layers: []
+    waves: {W1: H, W2: H, W3: L}
+    purity: H
+    valuation: PEG혼합
+    maturity: 이익기업
+  CRDO:
+    name: Credo Technology
+    layer: 5
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: H
+    valuation: PEG혼합
+    maturity: 이익기업
+  ALAB:
+    name: Astera Labs
+    layer: 5
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: H
+    valuation: PEG혼합
+    maturity: 이익기업
+  VRT:
+    name: Vertiv
+    layer: 5
+    aux_layers: [1]   # 전력관리·냉각 → 전력 블록 성격도 있음
+    waves: {W1: H, W2: H, W3: L}   # 철학 §2 예시 값
+    purity: H
+    valuation: PEG혼합
+    maturity: 이익기업
+  SMCI:
+    name: Super Micro
+    layer: 5
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: H
+    valuation: PER밴드
+    maturity: 이익기업
+
+  # ── ⑥ 클라우드 플랫폼 (⑦ 모델의 프록시) ───────
+  MSFT:
+    name: Microsoft
+    layer: 6
+    aux_layers: [8]
+    waves: {W1: H, W2: H, W3: L}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+  GOOGL:
+    name: Alphabet
+    layer: 6
+    aux_layers: [9]   # Waymo
+    waves: {W1: M, W2: H, W3: M}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+  AMZN:
+    name: Amazon
+    layer: 6
+    aux_layers: [9]   # 물류 로보틱스
+    waves: {W1: H, W2: H, W3: M}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+  ORCL:
+    name: Oracle
+    layer: 6
+    aux_layers: []
+    waves: {W1: H, W2: M, W3: L}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+  META:
+    name: Meta Platforms
+    layer: 6
+    aux_layers: [8]
+    waves: {W1: H, W2: H, W3: L}
+    purity: M
+    valuation: PER밴드
+    maturity: 이익기업
+
+  # ── ⑧ 응용 SW ─────────────────────────────────
+  PLTR:
+    name: Palantir
+    layer: 8
+    aux_layers: []
+    waves: {W1: L, W2: H, W3: M}
+    purity: H
+    valuation: EV/Sales
+    maturity: 이익기업
+  NOW:
+    name: ServiceNow
+    layer: 8
+    aux_layers: []
+    waves: {W1: L, W2: H, W3: L}
+    purity: L
+    valuation: EV/Sales
+    maturity: 이익기업
+  APP:
+    name: AppLovin
+    layer: 8
+    aux_layers: []
+    waves: {W1: L, W2: H, W3: L}
+    purity: M
+    valuation: EV/Sales
+    maturity: 이익기업
+  DUOL:
+    name: Duolingo
+    layer: 8
+    aux_layers: []
+    waves: {W1: L, W2: H, W3: L}
+    purity: M
+    valuation: EV/Sales
+    maturity: 이익기업
+
+  # ── ⑨ 피지컬 AI ───────────────────────────────
+  TSLA:
+    name: Tesla
+    layer: 9
+    aux_layers: []
+    waves: {W1: L, W2: M, W3: H}
+    purity: L        # 매출 대부분이 차량 판매
+    valuation: PEG혼합
+    maturity: 이익기업
+  MBLY:
+    name: Mobileye
+    layer: 9
+    aux_layers: []
+    waves: {W1: L, W2: L, W3: H}
+    purity: H
+    valuation: EV/Sales
+    maturity: 이익기업   # GAAP 적자·조정이익 흑자 경계 — 분기 리뷰 시 재확인
+
+# 프리어닝 워치리스트 (명제 4: 스코어링 제외, 승격 조건 감시)
+watchlist: {}
