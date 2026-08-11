@@ -18,10 +18,10 @@ MIN_BAND_OBSERVATIONS = 250       # 이보다 표본이 적으면 백분위를 �
 DRAWDOWN_WINDOW_DAYS = 365        # 52주 고점
 EST_TREND_WINDOWS = (30, 90)      # forward EPS 궤적 비교 시점 (일)
 EST_TREND_SLACK_DAYS = 10         # 스냅샷이 정확히 그날 없을 때 허용하는 소급 범위
-MIN_PEER_GROUP = 3                # 동종 비교 최소 인원
 
-# PER/PEG 계열 잣대만 현재 구현되어 있다. FFO배수·EV/Sales는 4차 이후 (§오픈 항목)
-PER_VALUATIONS = {"PER밴드", "PEG혼합"}
+# 유니버스 스키마에 속한 값이므로 universe에서 가져온다 (quality도 같은 기준을 쓴다)
+MIN_PEER_GROUP = universe.MIN_PEER_GROUP
+PER_VALUATIONS = universe.PER_VALUATIONS
 
 
 @dataclass

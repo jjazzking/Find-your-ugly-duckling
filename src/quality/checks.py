@@ -35,6 +35,7 @@ def run_all(conn, run_date: str) -> list[Finding]:
     findings += check_cross_source_eps(conn, tickers)
     findings += check_ttm_computable(conn, tickers)
     findings += check_coverage(conn, tickers)
+    findings += check_universe_structure()
     return findings
 
 
@@ -189,6 +190,34 @@ def check_coverage(conn, tickers) -> list[Finding]:
         for table, sql in sources.items():
             if conn.execute(sql, (t,)).fetchone()["n"] == 0:
                 findings.append(Finding("커버리지", "warning", t, f"{table}에 데이터 없음"))
+    return findings
+
+
+# ── 체크 8: 유니버스 구조 (경고) ──────────────────────────────
+
+
+def check_universe_structure() -> list[Finding]:
+    """레이어가 동종 비교를 성립시킬 만큼의 인원을 갖췄는지.
+
+    잣대가 구현된 종목이 레이어에 3개 미만이면 중앙값이 만들어지지 않아
+    '동종 할인'(가중치 0.25)이 통째로 빠진 채 점수가 나온다. 데이터 문제가
+    아니라 유니버스 설계 문제이므로 경고로 남긴다.
+    """
+    stocks = universe.load()
+    by_layer: dict[int, list[str]] = {}
+    for ticker, attrs in stocks.items():
+        if attrs["valuation"] in universe.PER_VALUATIONS:
+            by_layer.setdefault(attrs["layer"], []).append(ticker)
+    findings = []
+    for layer in sorted({a["layer"] for a in stocks.values()}):
+        members = by_layer.get(layer, [])
+        if len(members) < universe.MIN_PEER_GROUP:
+            findings.append(Finding(
+                "유니버스구조", "warning", None,
+                f"레이어 {layer}: 잣대 구현 종목 {len(members)}개"
+                f"(최소 {universe.MIN_PEER_GROUP}) — 동종 할인이 산출되지 않음"
+                f"{' [' + ', '.join(members) + ']' if members else ''}",
+            ))
     return findings
 
 
