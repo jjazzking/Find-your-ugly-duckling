@@ -11,6 +11,7 @@ import time
 import requests
 
 from src import config, universe
+from src.ingest import Result
 
 TICKER_CIK_URL = "https://www.sec.gov/files/company_tickers.json"
 COMPANYFACTS_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
@@ -33,6 +34,8 @@ CONCEPTS = {
 
 
 def _session() -> requests.Session:
+    if not config.SEC_USER_AGENT.strip():
+        raise RuntimeError(config.SEC_USER_AGENT_HINT)
     s = requests.Session()
     s.headers.update({"User-Agent": config.SEC_USER_AGENT})
     return s
@@ -44,22 +47,29 @@ def _cik_map(session: requests.Session) -> dict[str, int]:
     return {v["ticker"].upper(): int(v["cik_str"]) for v in resp.json().values()}
 
 
-def ingest(conn, tickers: list[str] | None = None) -> int:
+def ingest(conn, tickers: list[str] | None = None) -> Result:
     tickers = tickers or universe.tickers()
     collected_at = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     session = _session()
     cik_map = _cik_map(session)
-    inserted = 0
+    result = Result()
     for ticker in tickers:
         cik = cik_map.get(ticker.upper())
         if cik is None:
-            continue  # 커버리지 체크(quality #6)가 잡는다
-        time.sleep(REQUEST_INTERVAL_SEC)
-        resp = session.get(COMPANYFACTS_URL.format(cik=cik), timeout=60)
-        if resp.status_code == 404:
+            result.failures.append((ticker, "SEC 티커→CIK 매핑에 없음 (ADR·티커 변경 확인)"))
             continue
-        resp.raise_for_status()
-        facts = resp.json().get("facts", {})
+        time.sleep(REQUEST_INTERVAL_SEC)
+        try:
+            resp = session.get(COMPANYFACTS_URL.format(cik=cik), timeout=60)
+            if resp.status_code == 404:
+                result.failures.append((ticker, f"companyfacts 없음 (CIK {cik:010d})"))
+                continue
+            resp.raise_for_status()
+            facts = resp.json().get("facts", {})
+        except Exception as exc:
+            # 한 종목의 실패로 나머지 31종목의 공시 데이터를 잃지 않는다
+            result.fail(ticker, exc)
+            continue
         for taxonomy in ("us-gaap", "ifrs-full"):
             for concept, body in facts.get(taxonomy, {}).items():
                 if concept not in CONCEPTS:
@@ -87,6 +97,6 @@ def ingest(conn, tickers: list[str] | None = None) -> int:
                                 collected_at,
                             ),
                         )
-                        inserted += cur.rowcount
+                        result.inserted += cur.rowcount
         conn.commit()
-    return inserted
+    return result

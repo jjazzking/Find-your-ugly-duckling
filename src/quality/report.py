@@ -17,6 +17,11 @@ def persist(conn, run_date: str, findings: list[Finding]) -> None:
     conn.commit()
 
 
+def _cell(text) -> str:
+    """markdown 표 셀로 안전하게: 줄바꿈은 표를 깨고, 파이프는 열을 쪼갠다."""
+    return " ".join(str(text or "-").split()).replace("|", "\\|")
+
+
 def write_markdown(conn, run_date: str, findings: list[Finding], ingest_counts: dict) -> str:
     errors = [f for f in findings if f.severity == "error"]
     warnings = [f for f in findings if f.severity == "warning"]
@@ -42,7 +47,7 @@ def write_markdown(conn, run_date: str, findings: list[Finding], ingest_counts: 
             continue
         lines += ["| 체크 | 티커 | 내용 |", "|---|---|---|"]
         for f in items:
-            lines.append(f"| {f.check_name} | {f.ticker or '-'} | {f.detail} |")
+            lines.append(f"| {_cell(f.check_name)} | {_cell(f.ticker)} | {_cell(f.detail)} |")
 
     lines += [
         "",

@@ -27,6 +27,7 @@ python -m jobs.dashboard       # 대시보드만 다시 렌더 (분석 재실행
 ```bash
 python -m tests.test_quality    # 정합성 규칙 (위반 7종 검출)
 python -m tests.test_analysis   # 게이트·점수·룩어헤드 차단
+python -m tests.test_ingest     # 수집 실패 처리 (가짜 응답 주입)
 ```
 
 DB는 `data/duckling.db`(SQLite, git 제외)에 쌓인다. `raw_*`는 append-only,
