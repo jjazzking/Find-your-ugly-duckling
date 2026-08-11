@@ -205,11 +205,15 @@ def check_universe_structure() -> list[Finding]:
     """
     stocks = universe.load()
     by_layer: dict[int, list[str]] = {}
+    recommend_layers = set()
     for ticker, attrs in stocks.items():
+        if attrs["mode"] != universe.RECOMMEND:
+            continue  # 관찰 전용 레이어는 애초에 추천을 내지 않으므로 인원 요건 대상이 아니다
+        recommend_layers.add(attrs["layer"])
         if attrs["valuation"] in universe.PER_VALUATIONS:
             by_layer.setdefault(attrs["layer"], []).append(ticker)
     findings = []
-    for layer in sorted({a["layer"] for a in stocks.values()}):
+    for layer in sorted(recommend_layers):
         members = by_layer.get(layer, [])
         if len(members) < universe.MIN_PEER_GROUP:
             findings.append(Finding(

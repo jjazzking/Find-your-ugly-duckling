@@ -44,7 +44,8 @@ def write_markdown(conn, date: str, metrics: dict, gate_results: dict, scores: d
         "| 게이트 판정 | 종목 수 |",
         "|---|---|",
     ]
-    for status in (gates.PASS, gates.WATCH, gates.FAIL, gates.HOLD, gates.UNSUPPORTED):
+    for status in (gates.PASS, gates.WATCH, gates.FAIL, gates.HOLD,
+                   gates.UNSUPPORTED, gates.OBSERVE_ONLY):
         lines.append(f"| {status} | {len(by_status.get(status, []))} |")
 
     lines += _ranking_section(metrics, gate_results, scores)
@@ -63,6 +64,10 @@ def write_markdown(conn, date: str, metrics: dict, gate_results: dict, scores: d
     lines += _list_section(
         "잣대 미구현", by_status.get(gates.UNSUPPORTED, []), gate_results,
         "FFO배수·EV/Sales 계열. PER을 대신 적용하지 않는다 (철학 §2).",
+    )
+    lines += _list_section(
+        "관찰 전용", by_status.get(gates.OBSERVE_ONLY, []), gate_results,
+        "동종 비교가 성립하지 않아 추천을 내지 않기로 한 레이어. 기다린다고 풀리는 상태가 아니다.",
     )
 
     lines += [

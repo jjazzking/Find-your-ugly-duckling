@@ -30,6 +30,7 @@ class Metric:
     layer: int
     purity: str
     valuation: str
+    mode: str = universe.RECOMMEND
     valuation_supported: bool = True
     price: float | None = None
     ttm_eps: float | None = None
@@ -58,6 +59,7 @@ def compute(conn, asof: str) -> dict[str, Metric]:
             layer=attrs["layer"],
             purity=attrs["purity"],
             valuation=attrs["valuation"],
+            mode=attrs["mode"],
             valuation_supported=attrs["valuation"] in PER_VALUATIONS,
         )
         if m.valuation_supported:

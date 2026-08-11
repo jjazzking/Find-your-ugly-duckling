@@ -149,7 +149,8 @@ def test_gates_and_scores():
     assert gr["TSM"].status == gates.FAIL and "승자독식" in gr["TSM"].reason, gr["TSM"]
     assert gr["ASML"].status == gates.WATCH, gr["ASML"]
     assert gr["NVDA"].status == gates.HOLD, gr["NVDA"]     # 가격 없음
-    assert gr["EQIX"].status == gates.UNSUPPORTED, gr["EQIX"]  # FFO배수
+    assert gr["EQIX"].status == gates.OBSERVE_ONLY, gr["EQIX"]  # ② 관찰 전용
+    assert gr["PLTR"].status == gates.UNSUPPORTED, gr["PLTR"]   # EV/Sales 잣대 미구현
 
     # 탈락·보류·워치리스트는 채점하지 않는다
     for t in ("KLA", "TSM", "ASML", "NVDA", "EQIX"):
@@ -204,6 +205,7 @@ def test_dashboard_payload():
         "components", "contributions", "price", "ttm_eps", "per", "band", "band_n",
         "fwd_eps", "forward_per", "growth", "peg", "drawdown", "trend30", "trend90",
         "peer_group", "peer_median", "peer_discount", "layer_band_median",
+        "mode", "added_date",
     }
     for row in payload["stocks"]:
         missing = required - set(row)

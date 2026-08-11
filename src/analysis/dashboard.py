@@ -65,6 +65,8 @@ def build_payload(conn, date: str) -> dict:
             "waves": attrs["waves"],
             "purity": attrs["purity"],
             "valuation": m["valuation"],
+            "mode": attrs["mode"],
+            "added_date": str(attrs["added_date"]),
             "status": s["gate_status"],
             "reason": s["gate_reason"],
             "score": s["score"],

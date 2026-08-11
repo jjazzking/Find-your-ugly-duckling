@@ -273,6 +273,7 @@ section > .note { margin: 0 0 20px; color: var(--ink-2); font-size: 13.5px; max-
 .pill.s-워치리스트 .dot { background: var(--warning); }
 .pill.s-보류 .dot { background: var(--neutral); }
 .pill.s-잣대미구현 .dot { background: transparent; border: 1px dashed var(--muted); }
+.pill.s-관찰전용 .dot { background: transparent; border: 2px solid var(--accent); }
 
 .purity {
   display: inline-block;
@@ -445,10 +446,10 @@ a { color: var(--accent); }
 <script>
 const DATA = /*__PAYLOAD__*/ null;
 
-const STATUSES = ["통과", "워치리스트", "탈락", "보류", "잣대미구현"];
+const STATUSES = ["통과", "워치리스트", "탈락", "보류", "잣대미구현", "관찰전용"];
 const STATUS_DOT = {
   "통과": "var(--good)", "워치리스트": "var(--warning)", "탈락": "var(--critical)",
-  "보류": "var(--neutral)", "잣대미구현": "var(--muted)"
+  "보류": "var(--neutral)", "잣대미구현": "var(--muted)", "관찰전용": "var(--accent)"
 };
 const COMPONENTS = ["밴드", "동종할인", "PEG", "낙폭"];
 const SEG_CLASS = { "밴드": 1, "동종할인": 2, "PEG": 3, "낙폭": 4 };
@@ -693,6 +694,8 @@ function detailRow(s) {
       <dt>파도 노출</dt><dd class="mono">W1 ${esc(s.waves.W1)} · W2 ${esc(s.waves.W2)} · W3 ${esc(s.waves.W3)}</dd>
       <dt>순도</dt><dd>${esc(s.purity)} <span style="color:var(--muted)">(신뢰도 ×${DATA.purity_confidence[s.purity]})</span></dd>
       <dt>잣대</dt><dd>${esc(s.valuation)}</dd>
+      <dt>역할</dt><dd>${esc(s.mode)}${s.mode === "관찰" ? " <span style='color:var(--muted)'>(추천 제외)</span>" : ""}</dd>
+      <dt>편입일</dt><dd class="mono">${esc(s.added_date)}</dd>
     </dl>`));
 
   if (s.score !== null) {

@@ -10,13 +10,14 @@
   워치리스트 — 프리어닝. 제외하되 감시는 계속 (명제 4)
   보류       — 판정에 필요한 데이터가 아직 없음. '통과'로 치지 않는다
   잣대미구현 — FFO배수·EV/Sales 종목
+  관찰전용   — 동종 비교가 성립하지 않아 추천을 내지 않기로 한 레이어 (유니버스 설계 결정)
 """
 
 import datetime as dt
 import statistics
 from dataclasses import dataclass
 
-from src import facts
+from src import facts, universe
 from src.analysis import metrics
 
 PREEARNINGS_WINDOW_DAYS = 14      # G0: 실적 D-14 이내면 워치리스트
@@ -28,6 +29,7 @@ LEADER_GROWTH_RATIO = 0.30        # G3: 1등 성장률의 30% 미만이면 탈�
 MIN_LEADER_PEERS = 3              # G3 적용 최소 인원
 
 PASS, FAIL, WATCH, HOLD, UNSUPPORTED = "통과", "탈락", "워치리스트", "보류", "잣대미구현"
+OBSERVE_ONLY = "관찰전용"
 
 
 @dataclass
@@ -51,6 +53,10 @@ def evaluate(conn, metrics: dict, asof: str) -> dict[str, GateResult]:
 
 
 def _evaluate_one(conn, m, asof, growth_by_layer, est_history_ok) -> GateResult:
+    if m.mode == universe.OBSERVE:
+        # 데이터가 없어서가 아니라, 동종 비교가 성립하지 않아 추천을 안 내기로 한 것.
+        # '보류'와 구분해야 한다 — 기다린다고 해결되는 상태가 아니다.
+        return GateResult(OBSERVE_ONLY, "관찰 전용 레이어 — 추천 대상에서 제외 (유니버스 설계 결정)")
     if not m.valuation_supported:
         return GateResult(UNSUPPORTED, f"{m.valuation} 잣대 미구현")
     if m.per is None:

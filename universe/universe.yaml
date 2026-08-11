@@ -46,7 +46,13 @@ stocks:
     maturity: 이익기업
     added_date: 2026-08-11
 
-  # ── ② DC 부동산·구축 ──────────────────────────
+  # ── ② DC 부동산·구축 (관찰 전용) ───────────────
+  #
+  # 순수 DC REIT는 상장 종목이 실제로 얇다: 2021~22년에 CyrusOne·CoreSite·
+  # QTS·Switch가 모두 인수되면서 EQIX·DLR 둘만 남았다. 남은 후보(IRM·AMT·
+  # DBRG·채굴 전환 사업자)는 사업모델이 달라 같은 중앙값에 넣을 수 없다.
+  # → 동종 비교가 성립하지 않으므로 추천을 내지 않고, 밸류체인을 읽기 위한
+  #   관찰 대상으로만 둔다. 종목 선택이 아니라 레이어 온도계로 쓴다.
   EQIX:
     name: Equinix
     layer: 2
@@ -55,6 +61,7 @@ stocks:
     purity: M
     valuation: FFO배수
     maturity: 이익기업
+    mode: 관찰
     added_date: 2026-08-11
   DLR:
     name: Digital Realty
@@ -64,6 +71,7 @@ stocks:
     purity: M
     valuation: FFO배수
     maturity: 이익기업
+    mode: 관찰
     added_date: 2026-08-11
 
   # ── ③ 장비·파운드리 ───────────────────────────

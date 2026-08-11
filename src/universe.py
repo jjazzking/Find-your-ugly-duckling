@@ -16,6 +16,11 @@ PER_VALUATIONS = {"PER밴드", "PEG혼합"}
 # 동종 비교 최소 인원 — 이보다 적으면 중앙값이 의미를 갖지 못한다
 MIN_PEER_GROUP = 3
 
+# 종목의 역할. '관찰'은 밸류체인을 읽기 위해 유니버스에 두되 추천·랭킹에서는 빼는 것.
+# 지표는 (계산 가능해지면) 계산하지만 점수는 내지 않는다.
+RECOMMEND, OBSERVE = "추천", "관찰"
+_VALID_MODES = {RECOMMEND, OBSERVE}
+
 
 def load() -> dict:
     with open(config.UNIVERSE_PATH, encoding="utf-8") as f:
@@ -30,6 +35,10 @@ def load() -> dict:
         waves = attrs["waves"]
         if set(waves) != {"W1", "W2", "W3"} or not set(waves.values()) <= _VALID_GRADE:
             raise ValueError(f"universe.yaml {ticker}: waves는 W1/W2/W3 각 H/M/L이어야 함")
+        if attrs.setdefault("mode", RECOMMEND) not in _VALID_MODES:
+            raise ValueError(
+                f"universe.yaml {ticker}: mode는 {sorted(_VALID_MODES)} 중 하나여야 함"
+            )
         try:
             dt.date.fromisoformat(str(attrs["added_date"]))
         except ValueError:
