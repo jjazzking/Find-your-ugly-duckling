@@ -105,7 +105,7 @@ find-your-ugly-duckling/
 | 1차 ✅ | universe.yaml 초안 + storage 스키마 + ingest 3종 + quality 검증·리포트 | 수 주간 매일 돌려 정합성 리포트가 깨끗하게 유지됨 |
 | 2차 ✅ | analysis (metrics → gates → scoring) + 일간 미운 오리 리포트 | 철학 §6 판정 규칙 확정 후 구현 완료 |
 | **3차 (다음)** | backtest (Phase 1: trailing PER 밴드, EDGAR 공시일 적용) | 가중치 튜닝 근거 확보 |
-| 4차 | UI/대시보드 | 별도 논의 |
+| 4차 ✅ | 검토용 대시보드 (자립형 HTML 1파일) | 게이트 판정·점수 분해를 종목별로 확인 가능 |
 
 ### 분석 3층 (2차 산출물)
 
@@ -113,8 +113,13 @@ find-your-ugly-duckling/
 raw (검증 통과) → metrics.py  지표: PER·자기 밴드 백분위·동종 할인·PEG·낙폭·추정치 궤적
                 → gates.py    G0 프리어닝 / G1 밸류트랩 / G2 레이어 하단 / G3 승자독식
                 → scoring.py  가중 점수 × 신뢰도 → **레이어 내부 랭킹**
-                → report.py   reports/duckling_YYYY-MM-DD.md
+                → report.py    reports/duckling_YYYY-MM-DD.md
+                → dashboard.py reports/dashboard_YYYY-MM-DD.html (자립형 1파일)
 ```
+
+대시보드는 derived 테이블만 읽어 JSON을 HTML에 심는 정적 생성물이다. 서버도
+빌드 도구도 쓰지 않는 이유는, 판정 근거를 보는 화면이 파이프라인보다 오래
+살아남아야 하고 파일 하나면 어디서든 열리기 때문이다.
 
 판정은 5가지다: 통과 / 탈락 / 워치리스트 / **보류** / 잣대미구현.
 `보류`가 따로 있는 이유는 "판정에 필요한 데이터가 없음"을 절대 `통과`로 흘리지 않기

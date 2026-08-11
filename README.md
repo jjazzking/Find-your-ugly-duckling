@@ -15,8 +15,12 @@ pip install -r requirements.txt
 export SEC_EDGAR_USER_AGENT="find-your-ugly-duckling (you@example.com)"
 
 python -m jobs.daily_ingest    # 수집 → 정합성 검증 → reports/quality_*.md
-python -m jobs.daily_analyze   # 정합성 통과 시에만 분석 → reports/duckling_*.md
+python -m jobs.daily_analyze   # 정합성 통과 시에만 분석 → 리포트 + 대시보드
+python -m jobs.dashboard       # 대시보드만 다시 렌더 (분석 재실행 없이)
 ```
+
+대시보드는 `reports/dashboard_YYYY-MM-DD.html` 파일 하나로 떨어진다.
+서버 없이 브라우저로 바로 열면 되고, 데이터는 HTML 안에 심겨 있다.
 
 테스트는 네트워크 없이 돈다:
 

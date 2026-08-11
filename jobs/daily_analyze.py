@@ -7,7 +7,7 @@
 
 import sys
 
-from src.analysis import gates, metrics, report, scoring
+from src.analysis import dashboard, gates, metrics, report, scoring
 from src.storage import db
 
 
@@ -60,8 +60,8 @@ def main() -> int:
         tally[g.status] = tally.get(g.status, 0) + 1
     print("[analysis] 게이트: " + ", ".join(f"{k} {v}" for k, v in sorted(tally.items())))
 
-    path = report.write_markdown(conn, asof, ms, gate_results, scores)
-    print(f"[analysis] 리포트: {path}")
+    print(f"[analysis] 리포트: {report.write_markdown(conn, asof, ms, gate_results, scores)}")
+    print(f"[analysis] 대시보드: {dashboard.write(conn, asof)}")
 
     top = sorted(
         (s for s in scores.values() if s.score is not None),

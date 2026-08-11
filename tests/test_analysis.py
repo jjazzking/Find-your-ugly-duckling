@@ -19,7 +19,7 @@ import tempfile
 os.environ["DUCKLING_DB"] = os.path.join(tempfile.mkdtemp(), "test_analysis.db")
 
 from src import facts
-from src.analysis import gates, metrics, report, scoring
+from src.analysis import dashboard, gates, metrics, report, scoring
 from src.storage import db
 
 ASOF = dt.date(2026, 8, 7)          # 금요일
@@ -184,11 +184,49 @@ def test_gates_and_scores():
     globals()["LAST_SCORES"] = sc
 
 
+def test_dashboard_payload():
+    """대시보드가 화면에서 쓰는 키를 페이로드가 전부 담고 있는지.
+
+    (열 하나를 빠뜨려도 HTML은 멀쩡히 그려지고 값만 '—'로 나오므로,
+     눈으로 보기 전에 여기서 걸린다.)
+    """
+    conn = _db()
+    ms = metrics.compute(conn, ASOF_S)
+    gr = gates.evaluate(conn, ms, ASOF_S)
+    sc = scoring.compute(ms, gr)
+    metrics.persist(conn, ASOF_S, ms)
+    scoring.persist(conn, ASOF_S, sc, gr)
+
+    payload = dashboard.build_payload(conn, ASOF_S)
+    required = {
+        "ticker", "name", "layer", "layer_name", "aux_layers", "waves", "purity",
+        "valuation", "status", "reason", "score", "rank", "confidence", "basis",
+        "components", "contributions", "price", "ttm_eps", "per", "band", "band_n",
+        "fwd_eps", "forward_per", "growth", "peg", "drawdown", "trend30", "trend90",
+        "peer_group", "peer_median", "peer_discount", "layer_band_median",
+    }
+    for row in payload["stocks"]:
+        missing = required - set(row)
+        assert not missing, f"{row['ticker']} 페이로드 키 누락: {sorted(missing)}"
+    assert len(payload["stocks"]) == len(ms)
+
+    amat = next(r for r in payload["stocks"] if r["ticker"] == "AMAT")
+    assert amat["peer_discount"] is not None and amat["peer_discount"] > 0.2, amat
+    # 스택바 세그먼트 합 = 총점 (결측 구성요소 재정규화 반영)
+    assert abs(sum(amat["contributions"].values()) - amat["score"]) < 1e-6
+
+    html = dashboard.render(payload)
+    assert dashboard.PLACEHOLDER not in html, "페이로드가 주입되지 않음"
+    assert "</script>" not in html.split("<script>")[1].split("renderHead")[0], \
+        "JSON 안의 </ 이스케이프 실패 — 스크립트 블록이 조기 종료됨"
+
+
 if __name__ == "__main__":
     test_lookahead_cutoff()
     test_gates_and_scores()
+    test_dashboard_payload()
     sc = LAST_SCORES
     print(
-        f"✅ 전체 통과: 룩어헤드 차단 · 게이트 5종 판정 · 레이어 랭킹 "
+        f"✅ 전체 통과: 룩어헤드 차단 · 게이트 5종 판정 · 대시보드 페이로드 · 레이어 랭킹 "
         f"(AMAT {sc['AMAT'].score:.1f}점 > LRCX {sc['LRCX'].score:.1f}점)"
     )

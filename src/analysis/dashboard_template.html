@@ -1,0 +1,785 @@
+<title>미운 오리 대시보드</title>
+<style>
+/* ── 토큰: 라이트가 기본, 다크는 미디어쿼리와 data-theme 양쪽에서 재정의 ── */
+:root {
+  --page:      #f4f6f8;
+  --surface:   #ffffff;
+  --sunken:    #eef1f5;
+  --ink:       #10151c;
+  --ink-2:     #59636f;
+  --muted:     #8a939e;
+  --hairline:  #e3e7ec;
+  --rule:      #cdd4dc;
+  --accent:    #184f95;
+  --accent-wash: #e7eefa;
+
+  --good:      #0ca30c;
+  --warning:   #fab219;
+  --critical:  #d03b3b;
+  --neutral:   #8a939e;
+
+  --s1: #2a78d6;  /* 밴드 */
+  --s2: #eb6834;  /* 동종할인 */
+  --s3: #1baf7a;  /* PEG */
+  --s4: #eda100;  /* 낙폭 */
+
+  --shadow: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page:      #0e1116;
+    --surface:   #161b22;
+    --sunken:    #1c222b;
+    --ink:       #e8ecf2;
+    --ink-2:     #a3adba;
+    --muted:     #78828f;
+    --hairline:  #262d38;
+    --rule:      #384252;
+    --accent:    #86b6ef;
+    --accent-wash: #1b2939;
+
+    --good:      #0ca30c;
+    --warning:   #fab219;
+    --critical:  #d03b3b;
+    --neutral:   #78828f;
+
+    --s1: #3987e5;
+    --s2: #d95926;
+    --s3: #199e70;
+    --s4: #c98500;
+  }
+}
+:root[data-theme="dark"] {
+  --page:      #0e1116;
+  --surface:   #161b22;
+  --sunken:    #1c222b;
+  --ink:       #e8ecf2;
+  --ink-2:     #a3adba;
+  --muted:     #78828f;
+  --hairline:  #262d38;
+  --rule:      #384252;
+  --accent:    #86b6ef;
+  --accent-wash: #1b2939;
+
+  --good:      #0ca30c;
+  --warning:   #fab219;
+  --critical:  #d03b3b;
+  --neutral:   #78828f;
+
+  --s1: #3987e5;
+  --s2: #d95926;
+  --s3: #199e70;
+  --s4: #c98500;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+               "Malgun Gothic", "Noto Sans KR", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 28px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+
+.mono, .num {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Liberation Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ── 헤더 ────────────────────────────────────────────── */
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--rule);
+}
+.masthead h1 {
+  margin: 6px 0 0;
+  font-size: 27px;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.masthead .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 4px; }
+
+.gatebadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--good);
+  background: var(--surface);
+  font-size: 13px;
+}
+.gatebadge.blocked { border-left-color: var(--critical); }
+.gatebadge b { font-weight: 640; }
+
+/* ── 요약 칩(필터) ───────────────────────────────────── */
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 11px 15px;
+  min-width: 128px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-top: 3px solid var(--dot, var(--neutral));
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color .12s ease, background .12s ease;
+}
+.chip:hover { background: var(--sunken); }
+.chip[aria-pressed="true"] {
+  border-color: var(--rule);
+  border-top-color: var(--dot, var(--neutral));
+  background: var(--sunken);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+.chip .n { font-size: 21px; font-weight: 640; }
+.chip .lbl { font-size: 12.5px; color: var(--ink-2); }
+
+/* ── 섹션 ────────────────────────────────────────────── */
+section > h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 640;
+  letter-spacing: -0.01em;
+}
+section > .note { margin: 0 0 20px; color: var(--ink-2); font-size: 13.5px; max-width: 68ch; }
+
+.layer-group { margin-bottom: 30px; }
+.layer-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 6px;
+}
+.layer-head .name { font-weight: 640; font-size: 15px; }
+.layer-head .meta { font-size: 12px; color: var(--muted); }
+
+/* ── 랭킹 행 ─────────────────────────────────────────── */
+.rank-row {
+  display: grid;
+  grid-template-columns: 34px minmax(150px, 200px) 74px 1fr;
+  gap: 18px;
+  align-items: center;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--hairline);
+}
+.rank-row .pos { font-size: 19px; font-weight: 640; color: var(--muted); }
+.rank-row .who .tk { font-weight: 640; font-size: 15px; }
+.rank-row .who .nm { font-size: 12px; color: var(--muted); }
+.rank-row .sc { font-size: 23px; font-weight: 640; letter-spacing: -0.02em; }
+.rank-row .sc small { font-size: 11px; color: var(--muted); font-weight: 500; margin-left: 3px; }
+
+.bars { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+/* 점수 기여도 스택바: 세그먼트 = 가중치 × 구성요소 × 신뢰도 */
+.stack {
+  display: flex;
+  height: 13px;
+  background: var(--sunken);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.stack .seg {
+  height: 100%;
+  border-right: 2px solid var(--surface);
+  cursor: default;
+}
+.stack .seg:last-child { border-right: 0; }
+.seg-1 { background: var(--s1); }
+.seg-2 { background: var(--s2); }
+.seg-3 { background: var(--s3); }
+.seg-4 { background: var(--s4); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-2); }
+.legend .item { display: inline-flex; align-items: center; gap: 6px; }
+.legend .sw { width: 10px; height: 10px; border-radius: 2px; }
+
+/* 밴드 스트립: 자기 3년 PER 분포에서 오늘 위치 */
+.band {
+  position: relative;
+  height: 22px;
+  background: var(--sunken);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.band .zone {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 20%;
+  background: var(--accent-wash);
+}
+.band .tick {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: var(--hairline);
+}
+.band .mark {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: var(--s1);
+}
+.band .val {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  font-size: 11px; padding: 0 6px; color: var(--ink-2);
+  white-space: nowrap;
+}
+.band-caption { font-size: 11.5px; color: var(--muted); }
+
+/* ── 상태 알약 ───────────────────────────────────────── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px 2px 7px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+  background: var(--surface);
+}
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--neutral); flex: none; }
+.pill.s-통과 .dot { background: var(--good); }
+.pill.s-탈락 .dot { background: var(--critical); }
+.pill.s-워치리스트 .dot { background: var(--warning); }
+.pill.s-보류 .dot { background: var(--neutral); }
+.pill.s-잣대미구현 .dot { background: transparent; border: 1px dashed var(--muted); }
+
+.purity {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 11px;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  color: var(--ink-2);
+}
+
+/* ── 표 ──────────────────────────────────────────────── */
+.tablewrap { overflow-x: auto; border: 1px solid var(--hairline); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+thead th {
+  position: sticky; top: 0;
+  background: var(--surface);
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+thead th.sortable { cursor: pointer; user-select: none; }
+thead th.sortable:hover { color: var(--ink); }
+thead th .arrow { opacity: .45; margin-left: 3px; }
+tbody td { padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+tbody tr.clickable { cursor: pointer; }
+tbody tr.clickable:hover td { background: var(--sunken); }
+tbody tr.open td { background: var(--sunken); }
+td.r, th.r { text-align: right; }
+td.reason { color: var(--ink-2); font-size: 12.5px; min-width: 240px; }
+
+/* ── 상세 패널 ───────────────────────────────────────── */
+.detail td { background: var(--sunken) !important; padding: 0; }
+.detail-inner {
+  padding: 20px 16px 24px;
+  border-left: 3px solid var(--accent);
+  display: grid;
+  gap: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; margin: 0; }
+.dl dt { color: var(--muted); }
+.dl dd { margin: 0; }
+.contrib { display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; }
+.contrib .line {
+  display: grid;
+  grid-template-columns: 66px 1fr 118px;
+  gap: 10px;
+  align-items: center;
+  white-space: nowrap;
+}
+.contrib .track { height: 9px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+.contrib .fill { height: 100%; border-radius: 3px; }
+.detail h4 { margin: 0 0 10px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* ── 툴팁 ────────────────────────────────────────────── */
+#tip {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  background: var(--ink);
+  color: var(--page);
+  padding: 7px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0;
+  transition: opacity .1s ease;
+  max-width: 260px;
+}
+#tip.on { opacity: 1; }
+
+/* ── 각주 ────────────────────────────────────────────── */
+.rules { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.rule-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  padding: 14px 16px;
+  font-size: 13px;
+}
+.rule-card h5 { margin: 0 0 6px; font-size: 13px; font-weight: 640; }
+.rule-card p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
+
+.callout {
+  border-left: 3px solid var(--warning);
+  background: var(--surface);
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.callout b { color: var(--ink); }
+
+footer {
+  border-top: 1px solid var(--hairline);
+  padding-top: 18px;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+@media (max-width: 720px) {
+  .rank-row { grid-template-columns: 26px 1fr 64px; }
+  .rank-row .bars { grid-column: 1 / -1; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <div class="eyebrow">AI 밸류체인 · 미운 오리 탐색</div>
+      <h1 id="title">미운 오리 대시보드</h1>
+      <div class="sub" id="subtitle"></div>
+    </div>
+    <div id="gatebadge"></div>
+  </header>
+
+  <section>
+    <h2>게이트 판정</h2>
+    <p class="note">칩을 누르면 아래 표가 그 판정만 보여준다. 판정이 <b>왜</b> 그렇게
+      났는지가 이 화면의 목적이다 — 추천 목록보다 제외 사유를 먼저 읽을 것.</p>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <section id="ranking-section">
+    <h2>레이어별 랭킹</h2>
+    <p class="note">점수는 <b>레이어 내부에서만</b> 의미가 있다. ②는 FFO배수, ⑧은 EV/Sales로
+      재는 종목들이라 레이어를 가로질러 비교하면 단위가 다른 숫자를 견주게 된다.
+      막대는 점수의 <b>기여도 분해</b>다 — 가중치 × 구성요소 점수 × 신뢰도.</p>
+    <div class="legend" id="legend"></div>
+    <div id="ranking"></div>
+  </section>
+
+  <section>
+    <h2>전 종목 감사표</h2>
+    <p class="note">행을 누르면 지표 원값과 점수 분해가 펼쳐진다. 유니버스 태그(레이어·파도·순도)도
+      같이 보여주니, 태그가 틀렸다고 판단되면 <span class="mono">universe/universe.yaml</span>에서
+      고치면 된다.</p>
+    <div class="tablewrap">
+      <table id="audit">
+        <thead><tr id="audit-head"></tr></thead>
+        <tbody id="audit-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>판정 규칙</h2>
+    <p class="note">이 수치들은 백테스트 이전의 <b>잠정값</b>이다. 규칙이 마음에 안 들면
+      바꿔야 할 것은 종목이 아니라 여기다.</p>
+    <div class="rules" id="rules"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const DATA = /*__PAYLOAD__*/ null;
+
+const STATUSES = ["통과", "워치리스트", "탈락", "보류", "잣대미구현"];
+const STATUS_DOT = {
+  "통과": "var(--good)", "워치리스트": "var(--warning)", "탈락": "var(--critical)",
+  "보류": "var(--neutral)", "잣대미구현": "var(--muted)"
+};
+const COMPONENTS = ["밴드", "동종할인", "PEG", "낙폭"];
+const SEG_CLASS = { "밴드": 1, "동종할인": 2, "PEG": 3, "낙폭": 4 };
+const SEG_VAR = { "밴드": "--s1", "동종할인": "--s2", "PEG": "--s3", "낙폭": "--s4" };
+
+let filter = null;
+let sortKey = "score";
+let sortDir = -1;
+let openTicker = null;
+
+const el = (t, cls, html) => {
+  const n = document.createElement(t);
+  if (cls) n.className = cls;
+  if (html !== undefined) n.innerHTML = html;
+  return n;
+};
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => (
+  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const num = (v, d = 1) => (v === null || v === undefined) ? "—" : v.toFixed(d);
+const pct = (v, d = 0) => (v === null || v === undefined) ? "—" : (v * 100).toFixed(d) + "%";
+const signed = (v, d = 1) => (v === null || v === undefined) ? "—"
+  : (v >= 0 ? "+" : "") + (v * 100).toFixed(d) + "%";
+
+/* ── 헤더 ── */
+function renderHead() {
+  document.getElementById("title").textContent = `미운 오리 대시보드 — ${DATA.asof}`;
+  const scored = DATA.stocks.filter(s => s.score !== null).length;
+  document.getElementById("subtitle").textContent =
+    `유니버스 ${DATA.stocks.length}종목 · 채점 ${scored}종목 · 기준일 ${DATA.asof}`;
+
+  const q = DATA.quality;
+  const blocked = q.errors.length > 0;
+  const badge = el("div", "gatebadge" + (blocked ? " blocked" : ""));
+  badge.innerHTML = blocked
+    ? `<span>정합성 <b>차단</b></span><span class="mono">오류 ${q.errors.length}건</span>`
+    : `<span>정합성 <b>통과</b></span><span class="mono">경고 ${q.warnings}건 · ${esc(q.run_date ?? "-")}</span>`;
+  document.getElementById("gatebadge").appendChild(badge);
+}
+
+/* ── 요약 칩 ── */
+function renderChips() {
+  const box = document.getElementById("chips");
+  box.textContent = "";
+  const counts = {};
+  DATA.stocks.forEach(s => counts[s.status] = (counts[s.status] || 0) + 1);
+  STATUSES.forEach(st => {
+    const b = el("button", "chip");
+    b.style.setProperty("--dot", STATUS_DOT[st]);
+    b.setAttribute("aria-pressed", String(filter === st));
+    b.innerHTML = `<span class="n num">${counts[st] || 0}</span><span class="lbl">${st}</span>`;
+    b.onclick = () => { filter = (filter === st) ? null : st; renderChips(); renderAudit(); };
+    box.appendChild(b);
+  });
+}
+
+/* ── 랭킹 ── */
+function renderLegend() {
+  const box = document.getElementById("legend");
+  box.textContent = "";
+  COMPONENTS.forEach(c => {
+    const i = el("span", "item");
+    i.innerHTML = `<span class="sw" style="background:var(${SEG_VAR[c]})"></span>` +
+      `${c} <span class="mono" style="color:var(--muted)">${DATA.weights[c]}</span>`;
+    box.appendChild(i);
+  });
+}
+
+function bandStrip(s) {
+  const b = el("div", "band");
+  b.appendChild(el("div", "zone"));
+  [20, 40, 60, 80].forEach(p => {
+    const t = el("div", "tick");
+    t.style.left = p + "%";
+    b.appendChild(t);
+  });
+  if (s.band !== null) {
+    const m = el("div", "mark");
+    m.style.left = `calc(${s.band}% - 1px)`;
+    b.appendChild(m);
+    const v = el("div", "val mono", num(s.band, 0));
+    if (s.band > 70) { v.style.right = `calc(${100 - s.band}% + 8px)`; }
+    else { v.style.left = `calc(${s.band}% + 8px)`; }
+    b.appendChild(v);
+  }
+  return b;
+}
+
+function stackBar(s) {
+  const st = el("div", "stack");
+  COMPONENTS.forEach(c => {
+    const contrib = s.contributions[c];
+    if (!contrib) return;
+    const seg = el("div", `seg seg-${SEG_CLASS[c]}`);
+    seg.style.width = contrib + "%";
+    attachTip(seg, `<b>${c}</b><br>기여 ${contrib.toFixed(1)}점 ` +
+      `(가중치 ${DATA.weights[c]} × 점수 ${s.components[c].toFixed(2)} × 신뢰도 ${s.confidence.toFixed(2)})`);
+    st.appendChild(seg);
+  });
+  const rest = 100 - s.score;
+  if (rest > 0) {
+    const gap = el("div", "seg");
+    gap.style.cssText = `width:${rest}%;background:transparent`;
+    st.appendChild(gap);
+  }
+  return st;
+}
+
+function renderRanking() {
+  const box = document.getElementById("ranking");
+  box.textContent = "";
+  const scored = DATA.stocks.filter(s => s.score !== null);
+  if (!scored.length) {
+    box.appendChild(el("div", "callout",
+      "<b>오늘 채점된 종목이 없다.</b> 아래 감사표의 ‘보류’ 사유를 볼 것 — " +
+      "추정치 스냅샷이 30일 이상 쌓이기 전에는 G1(밸류트랩)을 판정할 수 없고, " +
+      "그동안 대부분이 보류로 남는 것이 정상 동작이다."));
+    return;
+  }
+  const layers = [...new Set(scored.map(s => s.layer))].sort((a, b) => a - b);
+  layers.forEach(L => {
+    const g = el("div", "layer-group");
+    const rows = scored.filter(s => s.layer === L).sort((a, b) => a.rank - b.rank);
+    const head = el("div", "layer-head");
+    head.innerHTML = `<span class="name">${esc(rows[0].layer_name)}</span>` +
+      `<span class="meta">채점 ${rows.length}종목 · 잣대 ${esc(rows[0].valuation)}</span>`;
+    g.appendChild(head);
+    rows.forEach(s => {
+      const r = el("div", "rank-row");
+      r.innerHTML =
+        `<div class="pos num">${s.rank}</div>` +
+        `<div class="who"><div class="tk">${esc(s.ticker)}</div>` +
+        `<div class="nm">${esc(s.name)} · 순도 ${esc(s.purity)}</div></div>` +
+        `<div class="sc num">${num(s.score)}<small>점</small></div>`;
+      const bars = el("div", "bars");
+      bars.appendChild(stackBar(s));
+      bars.appendChild(bandStrip(s));
+      bars.appendChild(el("div", "band-caption",
+        s.band === null
+          ? `자기 밴드 표본 부족 (${s.band_n}일)`
+          : `자기 3년 PER 밴드 ${num(s.band, 0)}%지점 · PER ${num(s.per)} · ` +
+            `동종(${esc(s.peer_group ?? "-")}) 대비 ${signed(s.peer_discount, 0)} · 낙폭 ${signed(s.drawdown, 0)}`));
+      r.appendChild(bars);
+      g.appendChild(r);
+    });
+    box.appendChild(g);
+  });
+}
+
+/* ── 감사표 ── */
+const COLS = [
+  { k: "ticker", t: "티커", s: true },
+  { k: "layer", t: "레이어", s: true },
+  { k: "status", t: "판정", s: true },
+  { k: "score", t: "점수", s: true, r: true, f: s => num(s.score) },
+  { k: "per", t: "PER", s: true, r: true, f: s => num(s.per) },
+  { k: "band", t: "밴드%", s: true, r: true, f: s => num(s.band, 0) },
+  { k: "peer_discount", t: "동종할인", s: true, r: true, f: s => signed(s.peer_discount, 0) },
+  { k: "peg", t: "PEG", s: true, r: true, f: s => num(s.peg, 2) },
+  { k: "drawdown", t: "낙폭", s: true, r: true, f: s => signed(s.drawdown, 0) },
+  { k: "trend30", t: "추정30일", s: true, r: true, f: s => signed(s.trend30, 1) },
+  { k: "reason", t: "사유", s: false }
+];
+
+function renderAuditHead() {
+  const tr = document.getElementById("audit-head");
+  tr.textContent = "";
+  COLS.forEach(c => {
+    const th = el("th", (c.s ? "sortable " : "") + (c.r ? "r" : ""));
+    th.innerHTML = esc(c.t) + (sortKey === c.k
+      ? `<span class="arrow">${sortDir < 0 ? "▼" : "▲"}</span>` : "");
+    if (c.s) {
+      th.onclick = () => {
+        if (sortKey === c.k) sortDir = -sortDir; else { sortKey = c.k; sortDir = -1; }
+        renderAuditHead(); renderAudit();
+      };
+    }
+    tr.appendChild(th);
+  });
+}
+
+function renderAudit() {
+  const body = document.getElementById("audit-body");
+  body.textContent = "";
+  let rows = DATA.stocks.filter(s => !filter || s.status === filter);
+  rows.sort((a, b) => {
+    const x = a[sortKey], y = b[sortKey];
+    if (x === null || x === undefined) return 1;
+    if (y === null || y === undefined) return -1;
+    if (typeof x === "string") return sortDir * x.localeCompare(y, "ko");
+    return sortDir * (x - y);
+  });
+
+  rows.forEach(s => {
+    const tr = el("tr", "clickable" + (openTicker === s.ticker ? " open" : ""));
+    COLS.forEach(c => {
+      const td = el("td", (c.r ? "r " : "") + (c.k === "reason" ? "reason" : "") +
+        (c.r ? " num" : ""));
+      if (c.k === "ticker") {
+        td.innerHTML = `<b>${esc(s.ticker)}</b><br><span style="color:var(--muted);font-size:11.5px">${esc(s.name)}</span>`;
+      } else if (c.k === "layer") {
+        td.innerHTML = `<span style="white-space:nowrap">${esc(s.layer_name)}</span>` +
+          `<br><span class="purity">순도 ${esc(s.purity)}</span>`;
+      } else if (c.k === "status") {
+        td.innerHTML = `<span class="pill s-${esc(s.status)}"><span class="dot"></span>${esc(s.status)}</span>`;
+      } else if (c.k === "reason") {
+        td.textContent = s.reason || (s.status === "통과" ? "게이트 전부 통과" : "");
+      } else {
+        td.textContent = c.f(s);
+      }
+      tr.appendChild(td);
+    });
+    tr.onclick = () => { openTicker = (openTicker === s.ticker) ? null : s.ticker; renderAudit(); };
+    body.appendChild(tr);
+
+    if (openTicker === s.ticker) body.appendChild(detailRow(s));
+  });
+}
+
+function detailRow(s) {
+  const tr = el("tr", "detail");
+  const td = el("td");
+  td.colSpan = COLS.length;
+  const inner = el("div", "detail-inner");
+
+  inner.appendChild(block("지표 원값", `
+    <dl class="dl">
+      <dt>조정 종가</dt><dd class="mono">${num(s.price, 2)}</dd>
+      <dt>TTM EPS</dt><dd class="mono">${num(s.ttm_eps, 2)}</dd>
+      <dt>forward EPS</dt><dd class="mono">${num(s.fwd_eps, 2)}</dd>
+      <dt>PER / forward</dt><dd class="mono">${num(s.per)} / ${num(s.forward_per)}</dd>
+      <dt>성장률</dt><dd class="mono">${num(s.growth, 1)}%</dd>
+      <dt>밴드 표본</dt><dd class="mono">${s.band_n}일</dd>
+      <dt>동종 중앙값</dt><dd class="mono">${num(s.peer_median)} (${esc(s.peer_group ?? "-")}) · 할인 ${signed(s.peer_discount, 0)}</dd>
+      <dt>레이어 밴드 중앙값</dt><dd class="mono">${num(s.layer_band_median, 0)}</dd>
+      <dt>추정 30일 / 90일</dt><dd class="mono">${signed(s.trend30, 1)} / ${signed(s.trend90, 1)}</dd>
+    </dl>`));
+
+  inner.appendChild(block("유니버스 태그 <span style='color:var(--warning)'>초안</span>", `
+    <dl class="dl">
+      <dt>주 레이어</dt><dd>${esc(s.layer_name)}</dd>
+      <dt>보조 태그</dt><dd>${s.aux_layers.length ? s.aux_layers.join(", ") : "—"}</dd>
+      <dt>파도 노출</dt><dd class="mono">W1 ${esc(s.waves.W1)} · W2 ${esc(s.waves.W2)} · W3 ${esc(s.waves.W3)}</dd>
+      <dt>순도</dt><dd>${esc(s.purity)} <span style="color:var(--muted)">(신뢰도 ×${DATA.purity_confidence[s.purity]})</span></dd>
+      <dt>잣대</dt><dd>${esc(s.valuation)}</dd>
+    </dl>`));
+
+  if (s.score !== null) {
+    const c = el("div");
+    c.innerHTML = "<h4>점수 분해</h4>";
+    const list = el("div", "contrib");
+    COMPONENTS.forEach(k => {
+      const comp = s.components[k];
+      const line = el("div", "line");
+      const bar = comp === null || comp === undefined
+        ? `<span style="color:var(--muted);font-size:12px">미산출</span>`
+        : `<div class="track"><div class="fill" style="width:${comp * 100}%;background:var(${SEG_VAR[k]})"></div></div>`;
+      line.innerHTML = `<span style="color:var(--ink-2)">${k}</span>${bar}` +
+        `<span class="mono" style="text-align:right;color:var(--ink-2)">` +
+        `${comp === null || comp === undefined ? "—" : comp.toFixed(2)} → ${num(s.contributions[k] || 0, 1)}점</span>`;
+      list.appendChild(line);
+    });
+    const tot = el("div", "line");
+    tot.innerHTML = `<span style="font-weight:640">합계</span><span></span>` +
+      `<span class="mono" style="text-align:right;font-weight:640">${num(s.score)}점</span>`;
+    list.appendChild(tot);
+    c.appendChild(list);
+    c.appendChild(el("p", "", `<span style="font-size:12px;color:var(--muted)">` +
+      `근거 ${esc(s.basis || "-")} · 신뢰도 ${s.confidence.toFixed(2)}` +
+      `${s.reason ? " · " + esc(s.reason) : ""}</span>`));
+    inner.appendChild(c);
+  } else {
+    inner.appendChild(block("채점 제외", `<p style="margin:0;color:var(--ink-2);font-size:13px">` +
+      `${esc(s.reason || "-")}</p>`));
+  }
+
+  td.appendChild(inner);
+  tr.appendChild(td);
+  return tr;
+}
+
+function block(title, html) {
+  const d = el("div");
+  d.innerHTML = `<h4>${title}</h4>${html}`;
+  return d;
+}
+
+/* ── 규칙 카드 ── */
+function renderRules() {
+  const box = document.getElementById("rules");
+  box.textContent = "";
+  DATA.rules.forEach(r => {
+    const c = el("div", "rule-card");
+    c.innerHTML = `<h5>${esc(r.title)}</h5><p>${esc(r.body)}</p>`;
+    box.appendChild(c);
+  });
+}
+
+/* ── 툴팁 ── */
+const tip = document.getElementById("tip");
+function attachTip(node, html) {
+  node.addEventListener("mouseenter", e => {
+    tip.innerHTML = html;
+    tip.classList.add("on");
+    move(e);
+  });
+  node.addEventListener("mousemove", move);
+  node.addEventListener("mouseleave", () => tip.classList.remove("on"));
+  function move(e) {
+    const pad = 14;
+    let x = e.clientX + pad, y = e.clientY + pad;
+    const r = tip.getBoundingClientRect();
+    if (x + r.width > innerWidth - 8) x = e.clientX - r.width - pad;
+    if (y + r.height > innerHeight - 8) y = e.clientY - r.height - pad;
+    tip.style.left = x + "px";
+    tip.style.top = y + "px";
+  }
+}
+
+function renderFooter() {
+  document.getElementById("footer").innerHTML =
+    `<span>생성 ${esc(DATA.generated)}</span>` +
+    `<span>가중치 ${Object.entries(DATA.weights).map(([k, v]) => k + " " + v).join(" / ")}</span>` +
+    `<span>모든 EPS는 SEC 공시일 이후에만 사용됨 (룩어헤드 차단)</span>`;
+}
+
+renderHead();
+renderChips();
+renderLegend();
+renderRanking();
+renderAuditHead();
+renderAudit();
+renderRules();
+renderFooter();
+</script>
