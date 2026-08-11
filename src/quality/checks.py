@@ -9,14 +9,7 @@ import datetime as dt
 from dataclasses import dataclass
 
 from src import config, universe
-
-# EPS 개념 우선순위: US-GAAP 희석 → IFRS 희석 → basic 순
-EPS_CONCEPTS = [
-    "EarningsPerShareDiluted",
-    "DilutedEarningsLossPerShare",
-    "EarningsPerShareBasic",
-    "BasicEarningsLossPerShare",
-]
+from src.facts import EPS_CONCEPTS, eps_quarter_series, ttm_eps  # noqa: F401 (재노출)
 
 CROSS_SOURCE_TOLERANCE = 0.25   # EDGAR TTM vs yfinance trailing EPS 상대 오차
 CROSS_SOURCE_ABS_FLOOR = 0.10   # 저EPS 종목의 상대오차 폭발 방지
@@ -56,68 +49,7 @@ def _recent_dates(conn, ticker: str, limit: int) -> list[str]:
     return sorted(r["date"] for r in rows)
 
 
-# ── 헬퍼: EDGAR 분기 EPS 시계열 재구성 ────────────────────────
-#
-# XBRL 관행상 Q4는 분기 fact로 따로 공시되지 않는 경우가 많다 (10-K에 FY만).
-# → Q4 = FY − (Q1+Q2+Q3)로 유도한다. filed_date는 10-K의 것을 따른다.
-
-
-def eps_quarter_series(conn, ticker: str):
-    """(quarters, unit_note) 반환. quarters = [(end_date, eps, filed_date), ...] 시간순.
-
-    unit_note가 None이 아니면 USD 단위 EPS가 없어 대조 불가라는 뜻 (예: TSM은 TWD 공시).
-    """
-    for concept in EPS_CONCEPTS:
-        rows = conn.execute(
-            "SELECT unit, start_date, end_date, filed_date, value FROM raw_fundamentals "
-            "WHERE ticker = ? AND concept = ? AND start_date != ''",
-            (ticker, concept),
-        ).fetchall()
-        if not rows:
-            continue
-        usd = [r for r in rows if r["unit"].upper().startswith("USD")]
-        if not usd:
-            return [], rows[0]["unit"]
-        quarterly: dict[str, tuple[float, str]] = {}  # end -> (val, filed)
-        annual: list[tuple[str, str, float, str]] = []  # (start, end, val, filed)
-        for r in usd:
-            days = (
-                dt.date.fromisoformat(r["end_date"])
-                - dt.date.fromisoformat(r["start_date"])
-            ).days
-            if 60 <= days <= 120:
-                prev = quarterly.get(r["end_date"])
-                if prev is None or r["filed_date"] < prev[1]:
-                    # 같은 분기 재공시(비교표시 포함)는 최초 공시분을 쓴다:
-                    # "그 시점에 알 수 있던 값" 원칙 (append-only와 동일한 취지)
-                    quarterly[r["end_date"]] = (r["value"], r["filed_date"])
-            elif 330 <= days <= 390:
-                annual.append((r["start_date"], r["end_date"], r["value"], r["filed_date"]))
-        for a_start, a_end, a_val, a_filed in annual:
-            if a_end in quarterly:
-                continue
-            inside = [v for e, (v, _) in quarterly.items() if a_start < e < a_end]
-            if len(inside) == 3:
-                quarterly[a_end] = (round(a_val - sum(inside), 4), a_filed)
-        series = sorted(
-            (end, val, filed) for end, (val, filed) in quarterly.items()
-        )
-        if series:
-            return series, None
-    return [], None
-
-
-def ttm_eps(quarters) -> float | None:
-    """마지막 4개 분기가 연속(총 스팬 ≤ 400일)일 때만 TTM을 계산한다."""
-    if len(quarters) < 4:
-        return None
-    last4 = quarters[-4:]
-    span = (
-        dt.date.fromisoformat(last4[-1][0]) - dt.date.fromisoformat(last4[0][0])
-    ).days
-    if span > 400:
-        return None
-    return sum(v for _, v, _ in last4)
+# 분기 EPS 재구성·TTM은 src/facts.py 공용 (analysis도 같은 규칙을 써야 하므로).
 
 
 # ── 체크 1: 크로스소스 EPS 대조 (오류) ────────────────────────

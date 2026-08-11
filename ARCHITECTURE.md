@@ -102,10 +102,24 @@ find-your-ugly-duckling/
 
 | 차수 | 범위 | 완료 기준 |
 |---|---|---|
-| **1차 (지금)** | universe.yaml 초안 + storage 스키마 + ingest 3종 + quality 검증·리포트 | 수 주간 매일 돌려 정합성 리포트가 깨끗하게 유지됨 |
-| 2차 | analysis (metrics → gates → scoring) | 철학 §6 오픈 항목 합의 후 착수 |
-| 3차 | backtest (Phase 1: trailing PER 밴드, EDGAR 공시일 적용) | 가중치 튜닝 근거 확보 |
+| 1차 ✅ | universe.yaml 초안 + storage 스키마 + ingest 3종 + quality 검증·리포트 | 수 주간 매일 돌려 정합성 리포트가 깨끗하게 유지됨 |
+| 2차 ✅ | analysis (metrics → gates → scoring) + 일간 미운 오리 리포트 | 철학 §6 판정 규칙 확정 후 구현 완료 |
+| **3차 (다음)** | backtest (Phase 1: trailing PER 밴드, EDGAR 공시일 적용) | 가중치 튜닝 근거 확보 |
 | 4차 | UI/대시보드 | 별도 논의 |
+
+### 분석 3층 (2차 산출물)
+
+```
+raw (검증 통과) → metrics.py  지표: PER·자기 밴드 백분위·동종 할인·PEG·낙폭·추정치 궤적
+                → gates.py    G0 프리어닝 / G1 밸류트랩 / G2 레이어 하단 / G3 승자독식
+                → scoring.py  가중 점수 × 신뢰도 → **레이어 내부 랭킹**
+                → report.py   reports/duckling_YYYY-MM-DD.md
+```
+
+판정은 5가지다: 통과 / 탈락 / 워치리스트 / **보류** / 잣대미구현.
+`보류`가 따로 있는 이유는 "판정에 필요한 데이터가 없음"을 절대 `통과`로 흘리지 않기
+위해서다. 추정치 스냅샷이 30일 이상 쌓이기 전에는 G1을 판정할 수 없고, 그동안
+대부분의 종목이 `보류`로 남는 것이 정상 동작이다.
 
 ---
 
@@ -113,4 +127,8 @@ find-your-ugly-duckling/
 
 - FMP free tier의 역할 확정 (estimates 원천 vs 크로스체크용)
 - quality 오류 등급의 허용 오차 수치 (크로스소스 EPS 오차 범위 등) → 실데이터 보고 튜닝
-- GitHub Actions cron 시각 (장 마감 + 데이터 반영 지연 고려)
+- GitHub Actions cron 시각 (장 마감 + 데이터 반영 지연 고려) — DB 보존 위치 결정이 선행
+- **FFO배수·EV/Sales 잣대 미구현**: ②(EQIX·DLR)와 ⑧(PLTR·NOW·APP·DUOL)·MBLY는
+  현재 `잣대미구현`으로 분류만 된다. PER을 대신 적용하지 않는다 (철학 §2에서 명시적으로 금지).
+  구현하려면 ingest에 D&A(FFO)·매출·발행주식수·순부채(EV) 개념 수집이 먼저 필요하다.
+- 실적 예상일: 지금은 EDGAR 공시일 간격의 중앙값으로 근사한다. 정식 캘린더 원천으로 교체 예정.

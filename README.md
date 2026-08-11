@@ -15,7 +15,22 @@ pip install -r requirements.txt
 export SEC_EDGAR_USER_AGENT="find-your-ugly-duckling (you@example.com)"
 
 python -m jobs.daily_ingest    # 수집 → 정합성 검증 → reports/quality_*.md
-python -m jobs.daily_analyze   # 정합성 통과 시에만 분석 (2차 마일스톤)
+python -m jobs.daily_analyze   # 정합성 통과 시에만 분석 → reports/duckling_*.md
 ```
 
-DB는 `data/duckling.db`(SQLite, git 제외)에 쌓인다. raw 테이블은 append-only.
+테스트는 네트워크 없이 돈다:
+
+```bash
+python -m tests.test_quality    # 정합성 규칙 (위반 7종 검출)
+python -m tests.test_analysis   # 게이트·점수·룩어헤드 차단
+```
+
+DB는 `data/duckling.db`(SQLite, git 제외)에 쌓인다. `raw_*`는 append-only,
+`derived_*`는 raw에서 언제든 전량 재계산된다.
+
+## 지금 상태
+
+수집·검증·분석까지 동작한다. 다만 **추정치 스냅샷이 30일 이상 쌓이기 전에는
+대부분의 종목이 `보류`로 나오는 것이 정상**이다 — 미운 오리 판정의 핵심인
+"이익 추정이 온전한가"를 forward EPS 궤적 없이는 판단할 수 없기 때문이다.
+그날까지는 리포트를 지표 대시보드로 읽으면 된다.
